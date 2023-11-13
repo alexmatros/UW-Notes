@@ -54,7 +54,7 @@ Things you **CAN** do:
 	**NOTE: prefer pass-by-const-ref over pass-by-value for anything larger than a ptr, unless function needs to copy anyways**
 
 ## Problem 2: Separate Compilation
-Creating a module:
+##### Creating a module
 ```c++
 echo.cc: // module interface file
 
@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
 }
 ```
 
-Compiling Order:
+##### Compiling Order
 - Must be compiled in dependency order: module interface -> module implementation -> client
 	- `g++20h iostream fstream`
 	- `g++20m -c echo.cc`
@@ -88,12 +88,12 @@ Compiling Order:
 	- `g++20m *.o -o mycat`
 
 ## Problem 3: Linear Collections and Modularity
-Allocating Memory in C++:
+##### Allocating Memory in C++
 - Do not use malloc/free
 - Use new/delete: `Mpde *n = new Node; delete n;`
 	- Give it a type and it will allocate enough memory for that
 
-Namespaces:
+##### Namespaces
 - Allow multiple modules to have the same names and parameters
 ```c++
 test.cc
@@ -113,7 +113,7 @@ int Test::f(int x) { ... };
 	- Except adding to namespace std is not permitted
 
 ## Problem 4: Linear Collections and Memory Management
-Arrays:
+##### Arrays
 - Creating arrays:
 	- `int a[10];` -> creates array on the *stack*, fixed size
 	- `int *p = new int[10];` -> creates array on the *heap*, fixed size
@@ -127,13 +127,13 @@ Arrays:
 
 	**NOTE: `type &f(type arg)` returns a reference to item of type, allowing for mutation**
 
-Argument-Dependent Lookup (ADL)
+##### Argument-Dependent Lookup (ADL)
 - Also called Koenig lookup
 - If a function takes an argument in a namespace, it is allowed to look in that namespace for the particular function
 - If the type of a function f's argument x belongs to a namespace n, then C++ will search the namespace n, as well as the current scope for a function matching f
 
 ## Problem 5: You're Doing It Wrong!
-Introduction to Classes:
+##### Introduction to Classes
 - **Classes**: structs can contain functions
 - **Methods**: functions that are inside structs
 - **Objects**: instances of a class
@@ -142,8 +142,8 @@ Introduction to Classes:
 	* `this` is a pointer to the receiver object
 	* Fields of the receiver object can be accessed without needing to use `this->field`
 
-###### Object Creation
-Initializing Objects:
+##### Object Creation
+###### Initializing Objects
 - **Constructor**: method with the same name as class
 - Initialize assuming constructor is defined:
 	- On stack: `Example e{1, 2, 3};` or `Example e = Example{1, 2, 3};` (equivalent)
@@ -159,7 +159,7 @@ Initializing Objects:
 - Ex. `Example e;` calls default constructor
 - This default constructor goes away if you write any constructor
 
-Object Creation Steps:
+###### Object Creation Steps
 1. Space is allocated
 2. (will explore later)
 3. Fields are constructed in declaration order -> field constructors are called for fields that are objects
@@ -167,7 +167,7 @@ Object Creation Steps:
 
 	**NOTE: field initialization should happen in step 3, but ctor body is in step 4 -> consequence is object fields could be initialized twice; solution: MIL**
 
-Member Initialization List (MIL)
+###### Member Initialization List (MIL)
 - New syntax:
 ```c++
 struct Example {
@@ -203,13 +203,13 @@ struct Node {
 ```
 - `explicit` keyword disables the implicit conversion
 
-###### Object Destruction
+##### Object Destruction
 Destroying Objects:
 - **Destructor**: method that runs automatically when an object goes out of scope
 - Built-in destructor: calls dtors on all fields that are objects
 - Does NOT free any pointers
 
-Object Destruction Steps:
+###### Object Destruction Steps
 1. Dtor body runs
 2. Fields destructed (dtor called on fields that are objects) in reverse declaration order
 3. (will explore later)
@@ -224,8 +224,8 @@ struct Node {
 delete n; // frees the entire list
 ```
 
-##### Problem 6: The Copier is Broken
-Copying Objects:
+## Problem 6: The Copier is Broken
+##### Copying Objects
 ```c++
 Node n = Node{1, Node{2, Node{3, nullptr}}};
 Node m = n; // allowed, constructs m as a copy of n
@@ -242,7 +242,7 @@ struct Node {
 ```
 - Need to pass by reference to copy ctor so it doesn't invoke copy... wouldn't make sense to copy calling copy
 
-Copy Assignment Operator:
+###### Copy Assignment Operator
 ```c++
 Node n;
 Node m;
@@ -252,7 +252,7 @@ m = n;
 	- Compiler-supplied: copies each field (shallow), leaks m's old data
 - Cannot simply copy other's data and then delete it -> it won't work in the case of self-assignment
 
-Copy and Swap Idiom:
+###### Copy and Swap Idiom
 ```c++
 import <utility>
 struct Node {
@@ -275,7 +275,8 @@ struct Node {
 R-Value References:
 - `Node &&` is a reference to a temporary object (rvalue) of type Node
 
-Move Constructor:
+##### Moving Objects
+###### Move Constructor
 ```c++
 struct Node {
 	...
@@ -288,7 +289,7 @@ struct Node {
 
 	**NOTE: move runs in constant time vs linear time of copying**
 
-Move Assignment Operator:
+###### Move Assignment Operator
 ```c++
 struct Node {
 	...
@@ -304,7 +305,7 @@ struct Node {
 - Easy to do: swap without copy
 	- Swap exchanges values through a temp variable
 
-Combined Copy and Move Assignment:
+###### Combined Copy and Move Assignment
 ```c++
 struct Node {
 	...
@@ -324,7 +325,7 @@ Important to Know:
 - If you don't define move operations, copy operations will be used
 - If you do define them, they replace copy operations whenever the arg is temporary (rvalue)
 
-Copy/Move Elision:
+###### Copy/Move Elision
 ```c++
 vector makeAVector() { return vector{}; }
 vector v = makeAVector();
@@ -348,7 +349,7 @@ doSomething(makeAVector());
 
 	**NOTE: does not mean copy/move ctors don't get run, just not as often as you'd expect**
 
-###### C++ Value Categories
+##### C++ Value Categories
 ```mermaid
 graph TD
 
@@ -409,7 +410,7 @@ vector g() {
 }
 ```
 
-Summary - Rule of the Big 5:
+##### Summary - Rule of the Big 5
 - If you need to customize any one of the following 5 operations... then you usually need to customize all 5:
 	1. Copy ctor
 	2. Copy assignment
@@ -418,7 +419,7 @@ Summary - Rule of the Big 5:
 	5. Move assignment
 
 ## Problem 8: I Don't Like Change
-Declaring Const Methods:
+##### Declaring Const Methods
 - Add const after method signature, means methods will not modify fields
 	- Can be called on const objects
 ```c++
@@ -436,7 +437,7 @@ void f(const vector &v) {
 	- **Cannot** change n, cap, theVector
 	- **Can** change items pointed at by the vector
 
-Const Overloading:
+##### Const Overloading
 - Define multiple methods - one for use if object is const, one for use if object is not const
 ```c++
 struct vector {
@@ -455,13 +456,13 @@ Inline:
 	- Metho body inside class implicitly suggests inline
 
 ## Problem 9: Keep it a Secret to Everybody
-Interfering with ADTs:
+##### Interfering with ADTs
 1. **Forgery**: creating an object without using a ctor function
 	- Not possible once we wrote ctors
 2. **Tampering**: accessing the internals without using a provided interface function... still an issue
 	- Need to provide and rely on abstractions that have invariants
 
-Private and Public:
+##### Private and Public
 - **Private** fields/methods are only accessible to the class itself
 - **Public** fields/methods are accessible to anyone
 - In a **struct**: defaults to public access
@@ -471,7 +472,7 @@ Private and Public:
 Design Patterns:
 - Well-known solutions to well-studied problems, adapted to suit current needs
 
-Iterator Pattern:
+##### Iterator Pattern
 - Efficient iteration over a collection without exposing the underlying structure
 - Create a subclass, iterator, which needs the following:
 	- Within the iterator class:
@@ -491,7 +492,7 @@ Auto:
 - Gives x the same type as the expr's value
 	- Faster because compiler does not need to do any type checking to see if it matches
 
-Range-Based For Loops:
+###### Range-Based For Loops
 ```c++
 for (auto n : l) {
 	out << n << ' ';
@@ -510,7 +511,7 @@ Friendship:
 - Advice: limit friends, it weakens encapsulation
 
 ## Problem 11: Now You've Gone Too Far
-Raising Exceptions:
+##### Raising Exceptions
 - Raise an exception by doing `throw exception{};` which constructs an object of type exception and throws it
 
 Try/Catch Blocks:
@@ -535,7 +536,7 @@ What if Dtor Throws?
 - If you really want a throwing dtor, tag it with `noexcept(false)`, but watch out...
 
 ## Problem 12: But I Want a Vector of Chars
-Templates:
+##### Templates
 ```c++
 template<typename T> class vector{
 	size_t n, cap;
@@ -554,7 +555,7 @@ template<typename T> void vector<T>::push_back(T n) { ... }
 
 	**NOTE: must put implementation in interface file, cannot put it in impl file** 
 
-Semantics of Templates:
+###### Semantics of Templates
 - The first time the compiler encounters `vector<type1>` where `type1` is a type, it creates a version of the code for vector where `type1` replaces `T` and compiles the new class
 - Same thing for every new `type2`, ...
 	- Compiler can't do this unless it knows all the details about the class
@@ -562,7 +563,7 @@ Semantics of Templates:
 	- Can also write the method bodies inline
 
 ## Problem 13: Better Initialization
-Initializer List Construction:
+##### Initializer List Construction
 ```c++
 #include <initializer_list>
 template<typename T> class vector {
@@ -610,7 +611,7 @@ int main() {
 - Creating a vector of type Posn initializes the internal array of Posns... but Posn doesn't have a default ctor
 - Need to separate memory allocation (Step 1) from object initialization (Step 2-4)
 
-Allocation:
+##### Allocation
 ```c++
 void *operator new(size_t n)
 ```
@@ -618,14 +619,14 @@ void *operator new(size_t n)
 - In C: `void*` implicitly converts to any ptr type
 - In C++: the conversion requires a cast
 
-Initialization:
+##### Initialization
 ```c++
 new (addr) type
 ```
 - "placement new"
 - Constructs `type` object at `addr`, does not allocate any memory
 
-Putting it Together:
+##### Putting it Together
 ```c++
 template<typename T> class vector {
 	...
@@ -653,7 +654,7 @@ template<typename T> class vector {
 ```
 
 ## Problem 15: Less Copying
-Template Functions:
+##### Template Functions
 ```c++
 template<typename T> void swap(T &a, T &b) {
 	T tmp {std::move(a)};
@@ -663,7 +664,7 @@ template<typename T> void swap(T &a, T &b) {
 ```
 - As with template classes, the type arg can be omitted if C++ can deduce it from the types of args
 
-Variadic Templates:
+###### Variadic Templates
 ```c++
 template<typename T> class vector {
   public:
@@ -678,7 +679,7 @@ template<typename T> class vector {
 - `Args` is a sequence of type variables denoting the types of the actual arguments
 - `args` is a sequence of program variables denoting the actual args
 
-How to Take Args by Reference?
+###### How to Take Args by Reference?
 ```c++
 template<typename... Args> void emplace_back(Args &&... args) {
 	increaseCap();
