@@ -53,7 +53,7 @@ Things you **CAN** do:
 
 	**NOTE: prefer pass-by-const-ref over pass-by-value for anything larger than a ptr, unless function needs to copy anyways**
 
-##### Problem 2: Separate Compilation
+## Problem 2: Separate Compilation
 Creating a module:
 ```c++
 echo.cc: // module interface file
@@ -87,7 +87,7 @@ Compiling Order:
 	- `g++20m -c main.cc`
 	- `g++20m *.o -o mycat`
 
-##### Problem 3: Linear Collections and Modularity
+## Problem 3: Linear Collections and Modularity
 Allocating Memory in C++:
 - Do not use malloc/free
 - Use new/delete: `Mpde *n = new Node; delete n;`
@@ -112,7 +112,7 @@ int Test::f(int x) { ... };
 - Namespaces are open, anyone can add items to any namespace
 	- Except adding to namespace std is not permitted
 
-##### Problem 4: Linear Collections and Memory Management
+## Problem 4: Linear Collections and Memory Management
 Arrays:
 - Creating arrays:
 	- `int a[10];` -> creates array on the *stack*, fixed size
@@ -132,7 +132,7 @@ Argument-Dependent Lookup (ADL)
 - If a function takes an argument in a namespace, it is allowed to look in that namespace for the particular function
 - If the type of a function f's argument x belongs to a namespace n, then C++ will search the namespace n, as well as the current scope for a function matching f
 
-##### Problem 5: You're Doing It Wrong!
+## Problem 5: You're Doing It Wrong!
 Introduction to Classes:
 - **Classes**: structs can contain functions
 - **Methods**: functions that are inside structs
@@ -271,7 +271,7 @@ struct Node {
 ```
 * `std::swap(a, b);`: exchanges the values of a and b
 
-##### Problem 7: Thievery
+## Problem 7: Thievery
 R-Value References:
 - `Node &&` is a reference to a temporary object (rvalue) of type Node
 
@@ -417,7 +417,7 @@ Summary - Rule of the Big 5:
 	4. Move ctor
 	5. Move assignment
 
-##### Problem 8: I Don't Like Change
+## Problem 8: I Don't Like Change
 Declaring Const Methods:
 - Add const after method signature, means methods will not modify fields
 	- Can be called on const objects
@@ -454,7 +454,7 @@ Inline:
 	- Doesn't have to listen, decides on its own even without inline
 	- Metho body inside class implicitly suggests inline
 
-##### Problem 9: Keep it a Secret to Everybody
+## Problem 9: Keep it a Secret to Everybody
 Interfering with ADTs:
 1. **Forgery**: creating an object without using a ctor function
 	- Not possible once we wrote ctors
@@ -467,7 +467,7 @@ Private and Public:
 - In a **struct**: defaults to public access
 - In a **class**: defaults to private access
 
-##### Problem 10: Walk Faster
+## Problem 10: Walk Faster
 Design Patterns:
 - Well-known solutions to well-studied problems, adapted to suit current needs
 
@@ -509,7 +509,7 @@ Friendship:
 - `friend` keyword gives class access to private attributes of friend class
 - Advice: limit friends, it weakens encapsulation
 
-##### Problem 11: Now You've Gone Too Far
+## Problem 11: Now You've Gone Too Far
 Raising Exceptions:
 - Raise an exception by doing `throw exception{};` which constructs an object of type exception and throws it
 
@@ -534,7 +534,7 @@ What if Dtor Throws?
 - Trouble - by default, program aborts immediately (`std::terminate` is called)
 - If you really want a throwing dtor, tag it with `noexcept(false)`, but watch out...
 
-##### Problem 12: But I Want a Vector of Chars
+## Problem 12: But I Want a Vector of Chars
 Templates:
 ```c++
 template<typename T> class vector{
@@ -561,7 +561,7 @@ Semantics of Templates:
 	- So the implementation need to be available, ie. in the `.h` file
 	- Can also write the method bodies inline
 
-##### Problem 13: Better Initialization
+## Problem 13: Better Initialization
 Initializer List Construction:
 ```c++
 #include <initializer_list>
@@ -594,7 +594,7 @@ vector<int> v{3, 5}; // 3 5
 - Initializer lists meant to be immutable, do not modify contents, do not use memory as standalone data structures
 - **In general:** if you know how big your vector will be, you can save reallocation cost by requesting the memory up front
 
-##### Problem 14: Actually... I Want a Vector of Posns
+## Problem 14: Actually... I Want a Vector of Posns
 Creating a Vector of Posns:
 ```c++
 struct Posn {
@@ -652,7 +652,7 @@ template<typename T> class vector {
 }
 ```
 
-##### Problem 15: Less Copying
+## Problem 15: Less Copying
 Template Functions:
 ```c++
 template<typename T> void swap(T &a, T &b) {
@@ -715,8 +715,8 @@ auto max(auto x, auto y) { ... }
 template<typename T1, typename T2> auto max(T1 x, T2 y) { ... }
 ```
 
-##### Problem 16: Memory Management is Hard
-Exception Safety:
+## Problem 16: Memory Management is Hard
+##### Exception Safety
 - Raising and handling an exception should not corrupt the program
 - Leaks are a corruption of the program's memory -> will eventually degrade performance and crash the program
 
@@ -730,5 +730,581 @@ What Constitutes Exception Safety? 3 Levels:
 3. No-throw guarantee
 	- A function offers the no-throw guarantee if it never emits an exception and always accomplishes its purpose
 
-Unique Pointers:
-- 
+##### Unique Pointers
+- "Owns" the memory it holds
+- Wrapper around a pointer that deletes the pointer inside of its dtor, called every time it goes out of scope
+- Unique ptrs cannot be copied, can be moved
+	- If unique ptrs were copied, 2 pointers to the same object
+	- When it goes out of scope, both try to delete it -> cause double free
+
+```c++
+template<typename T> class unique_ptr {
+	... 
+  public: 
+	... 
+	unique_ptr(const unique_ptr &other) = delete; 
+	unique_ptr &operator (const unique_ptr &other) = delete; 
+	// this is how copying of streams is prevented
+	unique_ptr (unique_ptr &&other): p{other.p} { 
+		other.p = nullptr;
+	} 
+	unique_ptr &operator=(unique_ptr &&other) {
+		delete p;
+		p = other.p;
+		other.p = nullptr;
+		return *this; 
+	} 
+};
+```
+*  `= delete` removes the copy operators
+
+Emplacement for `unique_ptr`s:
+```c++
+template unique_ptr make_unique(Args&&... args) { 
+	return unique_ptr<T>{ new T{ std::forward(args)... }};
+}
+
+// ex:
+auto p = make_unique<Posn>(1,2);
+```
+
+##### Resource Acquisition Is Initialization (RAII)
+- Any resource that must be properly released (memory, file handles, etc.) should be wrapped in a stack-allocated object whose destructor frees it
+- **DO NOT** allocate a `unique_ptr` on the heap -> defeats the purpose
+- `unique_ptr`, `ifstream`
+	- Acquire the resource when the object is initialized
+	- Release it when the object's dtor runs
+
+## Problem 17: Is Vector Exception-Safe?
+- Current implementation: NO!
+- Want to modify some methods to ensure it is exception-safe
+
+Moving if No Exception:
+- `std::move_if_no_except(x)` 
+	- Produces `std::move(x)` if x has a non-throwing move ctor
+	- Produces x otherwise
+
+Telling Compiler NoExcept:
+- `noexcept` keyword lets compiler know that a function/method is non-throwing
+- In general, `move` and `swap` should be non-throwing
+
+**Q:** Is `std::swap` NoExcept?
+```c++
+template <typename T> void swap(T &a, T &b) ____________ { 
+	T c (std::move(a)); 
+	a = std::move(b); 
+	b = std::move(c); 
+}
+```
+
+**A:** Only if T has a noexcept move ctor and move assignment. Thus the blank should be filled with:
+```c++
+noexcept(std::is_nothrow_move_constructible::value && std::is_nothrow_move_assignable::value)
+```
+- `noexcept(True)` is the same as `noexcept`
+
+## Problem 18: Inserting/Removing From the Middle
+- Inserting into lists is linear (no shuffling cost)
+- Inserting into vectors is linear (with shuffling cost -> unavoidable)
+
+Inserting With Iterators:
+- Considerably faster for lists
+```c++
+template <typename T> class Vector { 
+  public: 
+    iterator insert (iterator posn, const T &x) { 
+	    ptrdiff_t offset = posn - begin();
+	    increaseCap();
+	    iterator newPosn = begin() + offset;
+	    new (end()) T (std::move_if_noexcept(* (end()-1)));
+	    ++vb.n;
+	    
+	    for (iterator it = end() - 1; it != newPosn; --it) { 
+		    *it = std::move_if_noexcept(* (it-1)); 
+		} 
+		
+		*newPosn = x; 
+		return newPosn; 
+	} 
+};
+```
+
+Is This Exception Safe?
+- Assuming T’s copy/move options are exception safe (at least basis guarantee) 
+- May get a partially shuffled vector, but it will still be a valid vector
+
+Impact on Iterators:
+- Inserting elements can have an impact on iterators that appear after the inserted element due to the shift
+- **Convention:** after a call to insert or erase, all iterators pointing after the point of insertion/erasure are considered invalid and should not be used
+- Similarly if a reallocation happens -> all iterators pointing at the vector become invalid
+	- Problem with push_back: if placement new throws after an allocation, the vector is the same, but iterators were invalidated!
+	- To fix: don't throw away the old array until you have placed the item
+```c++
+void push_back(const T &x) {
+	if (n == vb.cap) {
+		vector_base<T> vb2 {2 * vb.cap};
+		new (vb2.v + n) T(x);
+		try {
+			uninitialized_copy_or_move(vb2.v, vb2.v + n, vb.v);
+		} catch (...) {
+			vb2.v[n].~T();
+			throw;
+		}
+		int m = n;
+		clear();
+		std::swap(vb, vb2);
+		n = m + 1;
+	} else ...
+}
+```
+
+## Problem 19: A Case Study in Strings
+Create a String Class:
+```c++
+class string {
+	size_t size, cap;
+	char *theString;
+  public:
+    const char *c_str() { // returns an equivalent C-style string O(1)
+	    return theString; // must have theString[length] == '\0'
+    }
+}
+```
+
+##### Lexicographical Comparison (<=>)
+- 3-valued comparison function: `operator<=>`
+- Standard provides a class `std::strong_ordering` and constants `std::strong_ordering::{less, equal, greater}` that can be used as a result of comparisons
+	- These results compare, respectively, as `{<, ==, >} 0`
+- By default, `<=>` does lex comparison on fields (by declaration order) for free if you ask for it:
+```c++
+class Vec {
+	int x, y;
+  public:
+    std::strong_ordering operator<=>(const Vec &other) const = default;
+};
+
+// or write it ourselves:
+
+class Vec {
+	int x, y;
+  public:
+    std::strong_ordering operator<=>(const Vec &other) const {
+	    auto n = x <=> other.x;
+	    return (n == 0) ? y <=> other.y : n;
+    }
+};
+```
+- But for string, default is ptr comparison, so we need to write out own:
+```c++
+class string {
+	...
+  public:
+    std::strong_ordering operator<=>(const string &other) const {
+	    for (size_t i = 0; i < min(n, other.n); ++i) {
+		    if (theString[i] != other.theString[i]) {
+			    return theString[i] <=> other.theString[i];
+		    }
+	    }
+		
+		return n <=> other.n;
+    }
+}
+```
+- Defining `<=>` gives `<`, `<=`, etc. for free
+- But, issue with `==` and `!=`: always does a linear scan (slow)
+	- Write a specialized `operator==` to compare lengths first, then do scan -> this will then be used for both `==` and `!=`
+
+
+##### Optimizing the String Representation
+- Short String Optimization (SS)
+	- Use the space as an array of chars if n is small
+	- n is the discriminator:
+```c++
+class string {
+	size_t n;
+	size_t cap;
+	char *theString;
+}
+```
+- Utilizing unions:
+```c++
+class string {
+	struct S {
+		size_t cap;
+		char *theString;
+	};
+	size_t n;
+	union {
+		S s;
+		char arr[sizeof(s)];
+	};
+};
+```
+- If n >= sizeof(s), use s, else use arr
+	- How long of a string can we hold? 
+		- 15 chars + null terminator since struct `S` takes 16 bytes
+	- Trick: assuming big-endian architecture, store n last instead of first
+		- If the string is short, first 3 bytes of n will be 0, so the first byte could be null-terminator
+		- Gives 16 chars + null terminator
+
+##### Extracting Substrings
+- `string::substr` method creates a new string, writes those chars in it -> new heap allocation (or SSO)
+- Can we do better? If we know the substr will not be mutated, or at least only shrink, consider:
+```c++
+class string_view {
+	const char *start;
+	size_t n;
+};
+```
+- A non-owning slice of a string
+	- Points to a position in an existing `string`, `char *` or `vector<char>`, plus length
+	- No allocations, smaller than string -> pass-by-value is reasonable
+	- Copy operations are trivial, no Big 5
+- Methods to give `string-view`:
+	- Iteration: `begin`/`end`- range-based loops
+	- Extracting further substrings
+		- `remove-prefix`/`remove-suffix` - modify the endpoints
+		- `substr` - produce another `string-view`
+	- Search: `find` - search for occurences
+
+## Problem 20: Abstraction Over Containers
+##### Transforming Containers Abstraction (Map)
+```c++
+template<typename T1, typename T2>
+void transform(const vector<T1> &source, vector<T2> &target, T2 (*f)(T1)) {
+	auto it = target.begin();
+	for (auto &x : source) {
+		*it = f(x);
+		++it;
+	}
+}
+```
+- But what if you want to transform a list, or transform list<->vector
+- Make the type variables stand for the iterators, not the container elements
+```c++
+template<typename InIter, typename OutIter, typename Fn>
+void transform(InIter start, InIter finish, OutIter target, Fn f) {
+	// same body
+}
+```
+- `InIter`/`OutIter` can be any types that support `++`, `*`, `!=`, including ordinary ptrs
+- `Fn` can be any type that supports function application
+	- Ex:
+```c++
+class Plus {
+	int n;
+  public:
+    Plus(int n) : n{n} {}
+    int operator()(int m) { return n + m; }
+};
+
+Plus p{5};
+p(7); // gives 12, Plus is a "function object"
+```
+
+##### Lambdas
+- Lambda notation: `[capture list](parameter list) mutable? noexcept? {body}`
+- Lambda semantics:
+```c++
+void f(T1 a, T2 b) {
+	[a, &b](int x) { body; } (args)
+}
+
+// translated to:
+void f(T1 a, T2 b) {
+	class ______ {
+		T1 a;
+		T2 b;
+	  public:
+	    ______(T1 a, T2 &b) : a{a}, b{b} {}
+	    auto operator()(int x) const { body; }
+	};
+	______{a, b}.operator()(arg);
+}
+```
+- If the lambda is declared mutable, then `operator()` is not const
+- Capture list provides access to selected variables in the enclosing scope
+
+## Problem 21: What's Better Than One Iterator?
+- Two iterators!
+
+##### Ranges (Views)
+- A range is anything with a `begin()` and `end()` producing iterator types -> vector is a range
+- A range only needs to look like it is sitting on top of a container -> have the range fetch items on demand
+- Ex. filter and transform:
+	- Filter - on fetch: iterate through the range until you find an item that satisfies the predicate, then return it
+	- Transform - on fetch: fetch an item x from the range below, then return f(x)
+- These range objects are called views -> on demand fetching, no intermediate storage
+```c++
+import <ranges>;
+
+vector v{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+auto x = std::ranges::views::transform(std::ranges::views::filter(v, odd), sqr);
+```
+
+##### Range Adapters
+- These range functions take a second form: range adapters
+	- `filter(pred)` and `transform(f)` - just supply the function, not the range
+- These become callable objects, parameterized by a range
+- Ex: `transfrom(f)(filter(pred)(R));`
+- Then, operator `|` is defined so that `R|A` means `A(R)`
+	- Ex: `B(A(R)) = B(R|A) = R|A|B`
+	- Ex: `auto x = v | filter(odd) | transform(sqr);`
+
+## Problem 22: Heterogeneous Data
+##### Inheritance
+- Superclass (or base class)
+	- Defines a common interface
+- Subclass (or derived class)
+	- Inherits all members (fields and methods) from their superclass
+```c++
+class Book {
+	String title, author;
+	int length;
+  public:
+    Book(string title, string author, int length) : 
+	    title{title}, author{author}, topic{topic} {}
+    bool isHeavy() const { return length > 100; }
+    string getTitle() const { return title; }
+};
+
+class Text : public Book {
+	string topic;
+  public:
+    Text(string title, string author, int length, string topic) :
+	    Book{title, author, length}, topic{topic} {}
+	bool isHeavy() const { return length > 200; }
+};
+```
+- Above doesn't work, subclasses cannot access private fields of superclass
+
+Providing Access to Superclass Private Fields:
+1. Make it protected
+	- `protected` keyword gives access only to the class itself and any of its subclasses
+	- Weakens encapsulation, cannot enforce invariants on protected fields
+2. Provide protected getter and setter methods
+	- Keep the fields private, but protected getters/setters
+	- Allows parent class to enforce invariants
+- **Preferred**: protected getters and setters
+
+##### Updated Object Construction/Destruction Sequences
+Construction:
+1. Space is allocated
+2. Superclass part is constructed
+3. Fields constructed in declaration order
+4. Ctor body runs
+
+Destruction:
+1. Dtor body runs
+2. Fields destructed in reverse declaration order
+3. Superclass part is destructed
+4. Space deallocated
+
+##### Type Compatibility
+- Subclasses should be usable in place of superclasses
+- However, it still acts as a superclass
+
+Slicing:
+- Slicing happens when trying to place a subclass into a superclass slot
+- It keeps only the superclass part, and "slices off" the subclass part
+```c++
+Book b = Text {__, __, __, __}; // will act like a book, not a text
+
+vector<Book> library;
+library.push_back(Text{...}); // only the book parts get copied, not heterogeneous
+```
+- This is a consequence of stack-allocated objects, special to C++
+	- Allocates just enough space to hold an object of type superclass, not enough for subclass
+- Slicing happens even if they are of the same size
+- As a result, the object acts as a superclass
+```c++
+void f(Book books[]); // raw arrays
+Text texts[] = {...};
+f(texts); // legal, but never do -> array will be misaligned, will not act like array of Books
+```
+
+
+##### Polymorphism
+True Heterogenous Collection
+- Slicing does not happen through pointers
+	- The choice of what kind of object's methods it uses is based on the type of the pointer (static type), not the object (dynamic type)
+	- C++ design principle: if you don't use it, you shouldn't have to pay for it
+- Define superclass method as virtual
+- Override the method in the subclass
+```c++
+class Book {
+	...
+  public:
+    ...
+    virtual bool isHeavy() const {...}
+};
+
+class Text {
+	...
+  public:
+    ...
+    bool isHeavy() const override {...}
+};
+```
+- `override` ensures the same method signature of a `virtual` method
+```c++
+vector<Book*> library;
+library.push_back(new Book{...});
+library.push_back(new Text{...});
+
+int howManyHeavy(const vector<Book*> &v) {
+	int count = 0;
+	for (auto &b : v) {
+		if (b->isHeavy()) ++count;
+	}
+	return count;
+}
+```
+- Now, calling `isHeavy()` will be called on the correct object type, even if we don't know what is in the vector, and the items are probably not all the same
+	- This is called **polymorphism**
+
+##### Virtual Methods
+Virtual methods are implementation-dependent, but the following is typical:
+- Non-virtual methods -> ordinary function call
+
+- If at least one virtual method:
+	- Compiler creates a table of function ptrs, one per class (the **vtable**)
+	- Each object contains a pointer to its class' vtable (the **vptr**)
+	- Calling a virtual method -> following the ptr to the vtable, follow the function pointer to the correct function
+	- vptr is often the first field, so that a subclass object looks like a superclass object and so the program knows where the vptr is
+- Thus, virtual methods incur a cost in time (extra ptr deref) and in space (each object gets a vptr/vtable)
+- If a subclass doesn't override a virtual method, its vtable will point to the superclass implementation
+
+## Problem 23: I'm Leaking!
+- Always make the dtor virtual in classes that are meant to be superclasses - even if the dtor does nothing. - you never know what the subclass might do, so you need to make sure its dtor gets called
+- Also always give your virtual dtor an implementation - even if empty - it will get called by subclass dtor
+
+If a class is not meant to be a superclass
+- No need to incur the cost of virtual methods needlessly
+- Leave the dtor non-virtual, but declare the class final
+```c++
+class X final {
+	... // cannot be subclassed
+};
+```
+
+## Problem 24: I Want a Class With No Objects
+##### Abstract Classes
+- Pure virtual methods are virtual methods with no implementation(`= 0`), forces subclasses to implement it
+```c++
+class Student {
+  public:
+	virtual float fees() const = 0; // pure virtual method
+};
+
+class RegularStudent : public Student {
+  public:
+    float fees() const override; // override of pure virtual method
+};
+```
+- An abstract class is any class with a pure virtual method
+- Abstract classes cannot be instantiated, but can point to instances of create subclasses
+```c++
+Student s; // wrong
+Student *s = new Student; // wrong
+Student *s = new RegularStudent; // OK
+```
+- Subclasses of abstract classes are abstract unless they implemesnt all pure virtual methods
+- Used to organize concrete classes
+- Can contain common fields, methods, and default implementations
+- You can make any class abstract (if no other pure-virtual method exists) by making the destructor pure virtual, and then implementing it outside of the class
+```c++
+class AbstractBook {
+	...
+  protected:
+    ...
+  public:
+    ...
+    virtual ~AbstractBook() = 0; // pure virtual dtor
+};
+
+AbstractBook::~AbstractBook() {} // dtor implementation
+```
+
+## Problem 25: The Copier is Broken
+- When subclasses add fields: be careful!
+```c++
+Book *b1 = new Text{...};
+Book *b2 = new Text{...};
+
+*b1 = *b2;
+```
+- Partial assignment is done, only the book part is copied - object is corrupted
+
+1. Make `operator=` virtual
+	- Issues could arise with mixed assignment
+2. Make all superclasses abstract, `operator=` non-virtual
+	- Makes `Abstract::operator=` not accessible to outsides, so thus no partial assignment and `*b1 = *b2` will not compile
+
+## Problem 26: I Want to Know What Kind of Book I Have
+- C++ has 4 casting operators:
+
+##### static_cast
+- `static_cast` is used for conversions with well-defined semantics
+```c++
+void f(int a);
+void f(double b);
+int x;
+f(static_cast<double>(x)); // calls the second f
+```
+- Can also cast superclass ptr to subclass ptr -> you have to really know that it is a subclass object, or else undefined behaviour
+```c++
+Book *b = new Text{...};
+Text *t = static_cast<Text*>(b)
+t->getTopic(); // works
+```
+
+##### reinterpret_cast
+- `reinterpret_cast` is used for casts without well-defined semantics
+- Unsafe, and implementation dependent
+```c++
+Book *b = new Book{...};
+int *p = reinterpret_cast<int*>(b); // dangerous...
+```
+
+##### const_cast
+- `const_cast` is used for adding/removing const
+- The only C++ casting operator that can "cast away const"
+```c++
+void g(Book &b); // assume we know in this circumstance, g won't mutate b
+void f(const Book &b) {
+	g(const_cast<Book&>(b));
+}
+```
+
+##### dynamic_cast
+- `dynamic_cast` attempts to cast the object and if it fails, returns a nullptr
+- Useful for when we don't know exactly what type of object we have -> static casting is not safe
+```c++
+Book *pb = ___;
+Text *pt = dynamic_cast<Text*>(pb); // Text obj casted if pb is Text, nullptr otherwise
+
+if (pt) { ... pt->getTopic() ...}
+else ... // not a Text
+```
+
+Dynamic Reference Casting:
+```c++
+Book *pb = ___;
+Text &t = dynamic_cast<Text&>(*pb);
+```
+- Okay if `*pb`, throws `std::bad_cast` otherwise
+- Works by accessing an object's runtime type information (RTTI) - stored in the vtable for the class
+	- Can only used `dynamic_cast` on objects with at least 1 virtual method
+- Dynamic casting offers a possible solution to the polymorphic assignment problem in Problem 25:
+	- With a virtual `operator=`, attempt to dynamic reference cast the incoming superclass object to the subclass object
+	- Works if it is a subclass object, throws otherwise
+	- Why is it better? Throws error at runtime vs. error at compile time
+```c++
+Text &Text::operator=(const Book &other) { // virtual
+	const Text &tOther = dynamic_cast<const Text&>(other);
+	Book::operator=(other);
+	topic = tOther.topic;
+	return *this;
+}
+```
