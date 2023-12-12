@@ -1,18 +1,19 @@
+*Taught by Professor Joe West, F23 Offering*
 # Chapter 1
 
 ## Scalar functions
 - A scalar function is a rule which assigns each ordered pair of real numbers $(x, y)$ in a set $D \subseteq \mathbb{R}^2$ and a unique real number where $z=f(x,y)$
-- D is called the domain of f. The set $\{f(x,y) | (x,y) \in D\}$ is called the range
+- *D* is called the domain of $f$; the set $\{f(x,y) | (x,y) \in D\}$ is called the range of $f$
 ## Sketching Surfaces
 ### Level Curves
-1. Set $f(x,y)=k$ for some constant k
+1. Set $f(x,y)=k$ for some constant $k$
 2. Simplify the remainder of the equation
-3. Plot points for various possible values of k
+3. Plot points for various possible values of $k$
 ### Cross Sections
-1. Set $x=c$ for some constant c
+1. Set $x=c$ for some constant $c$
 2. Simplify the remainder of the equation
-3. Plot points for various possible values of c
-4. Repeat steps 1-3 with $y=d$ for some constant d
+3. Plot points for various possible values of $c$
+4. Repeat steps (1)-(3) with $y=d$ for some constant $d$
 # Chapter 2
 ## Limits
 ### Neighbourhoods
