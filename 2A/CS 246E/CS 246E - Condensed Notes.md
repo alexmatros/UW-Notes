@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
 ## Problem 3: Linear Collections and Modularity
 ##### Allocating Memory in C++
 - Do not use malloc/free
-- Use new/delete: `Mpde *n = new Node; delete n;`
+- Use new/delete: `Node *n = new Node; delete n;`
 	- Give it a type and it will allocate enough memory for that
 
 ##### Namespaces
@@ -134,7 +134,7 @@ int Test::f(int x) { ... };
 
 ## Problem 5: You're Doing It Wrong!
 ##### Introduction to Classes
-- **Classes**: structs can contain functions
+- **Classes**: structs that contain functions
 - **Methods**: functions that are inside structs
 - **Objects**: instances of a class
 
@@ -453,7 +453,7 @@ Inline:
 - Keyword `inline` hints to compiler to place function call inline rather than on stack
 	- Saves the cost of a function call
 	- Doesn't have to listen, decides on its own even without inline
-	- Metho body inside class implicitly suggests inline
+	- Method body inside class implicitly suggests inline
 
 ## Problem 9: Keep it a Secret to Everybody
 ##### Interfering with ADTs
@@ -477,7 +477,7 @@ Design Patterns:
 - Create a subclass, iterator, which needs the following:
 	- Within the iterator class:
 		- `iterator(...) : ... {}` - constructor
-		- `bool operator != (const iterator &other) const { ... }` - not equal operator
+		- `bool operator!=(const iterator &other) const { ... }` - not equal operator
 		- `type &operator*() { ... }` - dereference operator
 		- `iterator &operator++() { ... }` - add 1 operator
 	- Outside of iterator class, inside wrapper class:
@@ -586,6 +586,8 @@ vector<int> v {1, 2, 3, 4, 5}; // 1 2 3 4 5
 vector<int> v; // empty
 vector<int> v{5}; // 5
 vector<int> v{3, 5}; // 3 5
+vector<int> v(5); // 0 0 0 0 0
+vector<int> v(3, 5); // 5 5 5
 ```
 - Default constructors > initializer list constructors > other constructors
 	- To get initializer list constructors to run, need brace bracket init
@@ -813,18 +815,18 @@ Inserting With Iterators:
 ```c++
 template <typename T> class Vector { 
   public: 
-    iterator insert (iterator posn, const T &x) { 
+    iterator insert(iterator posn, const T &x) { 
 	    ptrdiff_t offset = posn - begin();
 	    increaseCap();
 	    iterator newPosn = begin() + offset;
-	    new (end()) T (std::move_if_noexcept(* (end()-1)));
+	    new (end()) T(std::move_if_noexcept(* (end()-1)));
 	    ++vb.n;
 	    
 	    for (iterator it = end() - 1; it != newPosn; --it) { 
 		    *it = std::move_if_noexcept(* (it-1)); 
-		} 
+		}
 		
-		*newPosn = x; 
+		*newPosn = x;
 		return newPosn; 
 	} 
 };
@@ -937,7 +939,7 @@ class string {
 	size_t n;
 	union {
 		S s;
-		char arr[sizeof(s)];
+		char arr[sizeof(S)];
 	};
 };
 ```
@@ -1116,7 +1118,7 @@ library.push_back(Text{...}); // only the book parts get copied, not heterogeneo
 ```
 - This is a consequence of stack-allocated objects, special to C++
 	- Allocates just enough space to hold an object of type superclass, not enough for subclass
-- Slicing happens even if they are of the same size
+- Slicing happens even if they are of the same size`
 - As a result, the object acts as a superclass
 ```c++
 void f(Book books[]); // raw arrays
@@ -1230,7 +1232,7 @@ AbstractBook::~AbstractBook() {} // dtor implementation
 ## Problem 25: The Copier is Broken
 - When subclasses add fields: be careful!
 ```c++
-Book *b1 = new Text{...};
+Book *b1 = new Book{...};
 Book *b2 = new Text{...};
 
 *b1 = *b2;
