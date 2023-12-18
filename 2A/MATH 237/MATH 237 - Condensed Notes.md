@@ -3,7 +3,7 @@
 
 ## Scalar functions
 - A scalar function is a rule which assigns each ordered pair of real numbers $(x, y)$ in a set $D \subseteq \mathbb{R}^2$ and a unique real number where $z=f(x,y)$
-- *D* is called the domain of $f$; the set $\{f(x,y) | (x,y) \in D\}$ is called the range of $f$
+- $D$ is called the domain of $f$; the set $\{f(x,y) | (x,y) \in D\}$ is called the range of $f$
 ## Sketching Surfaces
 ### Level Curves
 1. Set $f(x,y)=k$ for some constant $k$
@@ -125,7 +125,7 @@
 	- $P_{1,(a,b)}(x,y)=f(a,b)+f_x(a,b)(x-a)+f_y(a,b)(y-b)=L_{(a,b)}(x,y)$
 	- $P_{2,(a,b)}(x,y)=P_{2,(a,b)}(x,y)+\displaystyle \frac{1}{2!}[f_{xx}(a,b)(x-a)^2+2f_{xy}(a,b)(x-a)(y-b)+f_{yy}(a,b)(y-b)^2]$
 ### Taylor's Formula
-- If $f \in C^2$ in some neighbourhood of $(a,b)$, then $\exists \underline{c}=(c,d)$ on the line segment joining $\underline{a}=(a,b)$ and $\underline{x}=(x,y)$ such that: $f(\underline{a})+f_x(\underline{a}))(x-a)+f_y(\underline{a})(y-b)+R_{1,\underline{a}}(\underline{x})$
+- If $f \in C^2$ in some neighbourhood of $(a,b)$, then $\exists \underline{c}=(c,d)$ on the line segment joining $\underline{a}=(a,b)$ and $\underline{x}=(x,y)$ such that: $f(\underline{x}) = f(\underline{a})+f_x(\underline{a}))(x-a)+f_y(\underline{a})(y-b)+R_{1,\underline{a}}(\underline{x})$
 - Where $R_{1,\underline{a}}(\underline{x})=\displaystyle \frac{1}{2!}[f_{xx}(\underline{c})(x-a)^2+2f_{xy}(\underline{c})(x-a)(y-b)+f_{yy}(\underline{c})(y-b)^2]$
 - In general, for $f \in C^2,$ $|R_{1}|\leq M[(x-a)^2+(y-b)^2]$ where $M$ is some constant
 ### Generalizations
