@@ -922,4 +922,33 @@ def gc() = {
 - In `copy`, if the block to be copied is not in the from-space, it is left alone (line 27)
 - In `copy`, if the block is in the from-space, it copies it to the free part of the to-space (line 30) and increments the `free` pointer (line 33); it also marks the original block as copied (sets size to negative number (line 32)) and leaves the address of the copy in the to-space in the block (sets the second word to the forwarded addr (line 31))
 	- Allows that if there is more than one pointer in the stack to the same block in the heap, the block will not be copied multiple times; instead of copying it, it will recognize it has already been copied since it has a negative size (line 29), and simply return the forwarding addr from the second word of the block (line 35)
-- 
+- After first while loop, all from-space blocks whose addresses are on the stack have been copied to the to-space and the addresses on the stack have been replaced with the addresses of the copies
+- However, does not account for all reachable blocks in from-space (since a block can be reachable indirectly by an address in another reachable block), and blocks that have been copied to the to-space may contain addresses inside them which still point to the from-space
+- To resolve this issue, a second while loop is done (lines 11-14)
+	- Instead of traversing the stack, it traverses the to-space
+	- Calls `forwardPtrs` on every block in the to-space to look for addresses in it
+	- Subtle aspect of this second while loop is its condition `scan < free`, both `scan` and `free` are changing (scan points to the current block being scanned, free indicates the end of all the blocks in the to-space) -> scan chases free
+- After the end of the second while loop, the roles of from-space and to-space are swapped by setting `fromSpaceEnd` to the end of the former to-space; value of `free` is copied to the `heapPointer` so that future allocations can occur in the new from-space after the blocks that have been copied there by the compaction
+### Example of Garbage Collection Process
+- Initial memory configuration:
+![[Pasted image 20231218164031.png]]
+- After the first while loop:
+![[Pasted image 20231218164051.png]]
+- In second while loop, scanning the copied block:
+![[Pasted image 20231218164145.png]]
+- After (second while loop) scanning the second block in the to-space:
+![[Pasted image 20231218164229.png]]
+### Properties of the Garbage Collector
+- Allocation usually takes constant time and the constant is small (only needs to increment the heapPointer)
+- In rare case that a garbage collection is triggered is the only exception
+- Cost of collection is proportional to the size of reachable blocks in the heap
+	- In many scenarios, there are significantly fewer reachable blocks than unreachable blocks, so this cost can be significantly lower than searching the whole heap
+- Overall cost depends on how full the memory is
+	-  When small fraction of memory in use, garbage collections occur less frequently and copy small fraction of heap
+	- When large fraction of memory in use, reaches the end of the from-space sooner, so more garbage collections take place and has more blocks to copy
+- Tradeoff between time and space: gc can be fast if the heap is much larger than the space actually in use, but becomes slower when the heap is close to full
+- Another problem is this algorithm allows only half of the heap to be used, wasting half the memory
+- Real world gcs are based on the same principles, but less wasteful
+	- Divide memory into more than 2 spaces of various sizes and a collection only needs one of those spaces to be empty
+	- Blocks that stay reachable for a long time can migrate to spaces that are garbage collected less often, while in frequently collected spaces, only a small fraction of the blocks are still reachable by the time of a collection, making those collections fast
+- Division of spaces into old, rarely collected ones, and young, frequently collected ones is called **generational garbage collection**
