@@ -156,7 +156,9 @@
 ## Control Structures
 - If statement:
 ```scala
-/* Generate assembly language code to implement the if statement 156 * if( e1 op e2 ) T else E. */ 
+/* Generate assembly language code to implement the if statement  
+* if( e1 op e2 ) T else E. 
+* */ 
 def generateCode(e1, operator, e2, T, E): Code = { 
 	t1 = new Variable 
 	elseLabel = new Label 
@@ -256,7 +258,7 @@ JR(Reg.link (31)) // return control to the calling code
 - Want to be able to nest procedures inside of other procedures
 ### Static and Dynamic Scope
 - **Dynamic scope** is a scope in which variables are scoped based on the execution of the program: can access variables declared only in the immediate procedure, or in procedures that called it, dynamically
-- **Static scope** is a scope in which variables are scoped based on the test of the program: can access variables declared only in the immediate procedure, or in the procedures that wrap it, lexically
+- **Static scope** is a scope in which variables are scoped based on the text of the program: can access variables declared only in the immediate procedure, or in the procedures that wrap it, lexically
 - Most languages use static scope because it is easier to reason with; we will use it too
 ### Implementing Nested Procedures
 - **Dynamic link** points to the frame of the caller
@@ -309,7 +311,7 @@ def procedure(x: Int) = { x + 1}
 var increase: (Int)=>Int = procedure
 // increase is now a variable that holds a function value
 ```
-- Use Scala syntax for an **anonymous function**: the syntax $p => e$ denotes a function that takes a parameter $p$ and whose bode is the expression $e$
+- Use Scala syntax for an **anonymous function**: the syntax $p => e$ denotes a function that takes a parameter $p$ and whose body is the expression $e$
 	- Another name is **lambda**
 ### Free Variables
 - A variable is a **free variable** if it is not **bound** to anything
@@ -412,7 +414,7 @@ JR(Reg.link (31))
 ```
 - Problem 1: LIS/JALR immediately followed by JR(Reg.link)
 	- The JALR will overwrite the intended return address that was placed in Reg.link = savedPC
-	- Since callee called by JALR instr returns to the JR(Reg.link) using its own JR(Reg.link instr at the end of the callee, we can elliminate the extra step and make the callee's JR(Reg.link) return directly to where we wanted the caller's JR(Reg.link) to return to
+	- Since callee called by JALR instr returns to the JR(Reg.link) using its own JR(Reg.link instr at the end of the callee, we can eliminate the extra step and make the callee's JR(Reg.link) return directly to where we wanted the caller's JR(Reg.link) to return to
 		- Replace JALR by JR: the address we pass into the callee in the link register 31 will directly be the addr that the caller should return to, rather than the addr of the JR(Reg.link) instr in the caller
 ```txt nums {10}
 // (tail) call 
@@ -563,7 +565,7 @@ LIS/JR
 ## Context-Free Grammars
 - Context-free grammars define steps of breaking components down into smaller pieces
 - Context-free grammars support recursion
-- Given a context-free grammer, we can construct **parse trees** for words
+- Given a context-free grammar, we can construct **parse trees** for words
 - Formally, a **context-free grammar** is a 4-tuple $\langle V, \Sigma, P, S \rangle$ where:
 	- $V$ is a finite set of **non-terminal symbols**
 	- $\Sigma$ is a finite set of **terminal symbols** (the alphabet)
@@ -692,7 +694,7 @@ parse(α, x) = { // does α ⇒∗ x ?
 ![[Pasted image 20231218111228.png]]
 ## Type Soundness
 - We say that a type system is **sound** whenever the expression of tree $E$ has type $\tau$ in the typing relation, then during the execution of a program, the expression $E$ evaluates to a value of type $\tau$
-- The Lacs typing rules were designed with the intent of being unsound
+- The Lacs typing rules were designed with the intent of being sound
 ## Well-Formedness Relation
 - Type inference rules do not yet give types to all Lacs parse trees; give types only to trees that represent expressions, which evaluate to values
 - Some Lacs parse trees represent parts of a program that are not expressions and do not evaluate to a value; ex) procedure declaration
@@ -700,7 +702,7 @@ parse(α, x) = { // does α ⇒∗ x ?
 - To perform such checks, we define another relation, $W$, called the **well-formedness relation**; it is a set of pairs $\langle \Gamma, E \rangle$ where $\Gamma$ is a typing context (symbol table) and $E$ is a term (parse tree)
 - The presence of a parse tree $E$ in the well-formedness relation $W$ means that the tree is considered to be a valid Lacs parse tree with no compile-time errors in it, but that it is not an expression and therefore it does not make sense to assign it any particular type
 - Notation: $\Gamma \vdash E$ means $\langle \Gamma, E \rangle \in W$
-- Well-formedness relation uses the same style of inference rules as for the typing relatio
+- Well-formedness relation uses the same style of inference rules as for the typing relation
 - These rules enforce the compile-time requirements of Lacs programs for parts of the parse tree other than expressions
 ![[Pasted image 20231218112858.png]]
 - Program
